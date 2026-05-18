@@ -1,44 +1,367 @@
-@import url(layout.css);
+/*
+ * index.css — Styles for the movie overview page
+ *
+ * This file does three things:
+ *   1. Defines the dark theme (background, text colors, fonts).
+ *   2. Lays out the page using CSS Grid Template Areas. The body becomes
+ *      a grid container with four named areas — header (h), nav (n),
+ *      main (m), and footer (f). On mobile we stack them in one column;
+ *      on desktop (>= 768px) the nav slides next to main on the left.
+ *   3. Uses Flexbox to lay out the contents of each landmark element
+ *      (centering the header text, wrapping nav buttons, stacking movie
+ *      cards in main, and centering the footer text).
+ *
+ * It also imports base.css which provides shared styles (the button look).
+ */
+@import url(base.css);
 
+/*
+ * BODY — root grid container.
+ *
+ * "display: grid" turns the body into a Grid container so its direct
+ * children (header, nav, main, footer) can be placed into named areas.
+ *
+ * "grid-template-areas" defines the layout visually using strings.
+ * Each string is one row; each token is one column.
+ *   - "h"   = header
+ *   - "n"   = nav
+ *   - "m"   = main
+ *   - "f"   = footer
+ *
+ * On mobile (default, no media query), all four areas are stacked
+ * vertically in a single column.
+ *
+ * "grid-template-rows: auto auto 1fr auto" gives:
+ *   - header:    auto (just as tall as its content)
+ *   - nav:       auto
+ *   - main:      1fr  → takes ALL the remaining vertical space
+ *   - footer:    auto
+ *
+ * "height: 100vh" sets the body to exactly the viewport height. Combined
+ * with main's "overflow-y: auto" below, this keeps the footer always
+ * visible — only the main area scrolls when content overflows.
+ *
+ * "margin: 0" removes the user-agent default body margin (otherwise
+ * a small white border would appear around the page).
+ */
 body {
-  background-image: url('images/background.jpg');
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
+    font-family: 'JetBrains Mono', monospace;
+    background-color: #1e1e1e; /* dark grey — easy on the eyes */
+    color: #e0e0e0;            /* light grey text on dark background */
+    margin: 0;                 /* remove browser default; also kills the
+                                  unnecessary scrollbar mentioned in the task */
+    padding: 0;
+
+    display: grid;
+    grid-template-areas:
+        "h"
+        "n"
+        "m"
+        "f";
+    grid-template-rows: auto auto 1fr auto;
+    height: 100vh;             /* fixed height so footer stays in viewport */
 }
 
-article {
-  background-color: rgba(211, 211, 211, 0.9);
-  border-radius: 16px;
-  padding: 16px;
-  width: 384px;
-  margin: 8px;
-}
+/*
+ * GRID AREA ASSIGNMENTS
+ *
+ * Each landmark element is placed into the area named in body's
+ * grid-template-areas. The names "h", "n", "m", "f" are arbitrary;
+ * what matters is that they match the strings in the container.
+ */
+header { grid-area: h; }
+nav    { grid-area: n; }
+main   { grid-area: m; }
+footer { grid-area: f; }
 
-article button {
-  margin: 0px 2px;
-}
-
+/*
+ * MAIN — independent scroll area.
+ *
+ * "overflow-y: auto" makes ONLY main scroll vertically when its content
+ * (the list of movie cards) is taller than the area allotted to it.
+ * The header, nav and footer remain fixed in place — that is what makes
+ * the footer "always visible" as required by Task 2.1.
+ *
+ * "min-height: 0" is a Grid-specific quirk: by default a grid item's
+ * minimum size is its content size, which would prevent overflow from
+ * triggering and leak content outside the area. Setting it to 0 lets
+ * the 1fr row truly cap main's height so its overflow can scroll.
+ */
 main {
-  display: flex;
-  flex-wrap: wrap;
+    overflow-y: auto;
+    min-height: 0;
 }
 
+/*
+ * DESKTOP LAYOUT (viewport wider than 768px)
+ *
+ * We switch to a 2D layout: header spans the full top row, footer the
+ * full bottom row, and the middle row splits into a 220px nav column
+ * on the left and a flexible main column on the right.
+ *
+ *     ┌────────── h h ──────────┐
+ *     │ n │        m            │
+ *     └────────── f f ──────────┘
+ *
+ * "grid-template-columns: 220px 1fr" — fixed nav width, main takes the rest.
+ * "grid-template-rows: auto 1fr auto" — header/footer hug content,
+ * the middle row (containing main) grows to fill the viewport.
+ */
+@media (min-width: 768px) {
+    body {
+        grid-template-areas:
+            "h h"
+            "n m"
+            "f f";
+        grid-template-columns: 220px 1fr;
+        grid-template-rows: auto 1fr auto;
+    }
+}
+
+/*
+ * HEADER — Flexbox use #1: center the page title.
+ *
+ * "display: flex" plus "justify-content: center" and "align-items: center"
+ * is the canonical Flexbox idiom for centering a single child element
+ * both horizontally and vertically inside its parent.
+ */
 header {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: #141414;
+    border-bottom: 1px solid #333;
 }
 
-span {
-  margin-right: 4px;
+/* Reset the h1 default margin so the header can center it cleanly */
+header h1 {
+    margin: 0;
+    font-size: 1.8em;
+    color: #f5f5f5;
 }
 
+/*
+ * NAV — Flexbox use #2: lay out genre buttons in a row that wraps.
+ *
+ * "flex-wrap: wrap" lets buttons drop to the next line when there is
+ * not enough horizontal space (important on mobile and on the narrow
+ * desktop nav column).
+ *
+ * "gap: 8px" adds even spacing between buttons without per-button margins.
+ *
+ * "align-content: flex-start" keeps wrapped rows packed at the top so
+ * buttons don't spread out vertically when the nav is tall (on desktop).
+ */
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+    align-content: flex-start;
+    background-color: #181818;
+    border-bottom: 1px solid #333;
+}
+
+/*
+ * MAIN — Flexbox use #3: stack movie cards vertically.
+ *
+ * Each <article> is a flex item; "flex-direction: column" stacks them.
+ * Note: main is also a Grid ITEM (placed into area "m"), but here we
+ * make it a Flex CONTAINER for its own children. The two roles don't
+ * conflict — Grid governs main's outer placement, Flexbox its inner.
+ */
+main {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    /* overflow-y / min-height already declared above */
+}
+
+/*
+ * FOOTER — Flexbox use #4: center the copyright text.
+ */
+footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    background-color: #141414;
+    border-top: 1px solid #333;
+    color: #888;       /* dimmed so it doesn't compete with main content */
+    font-size: 0.85em;
+}
+
+/*
+ * MOVIE CARD (article)
+ *
+ * Each card is itself a flex container so the poster and the info column
+ * sit side by side with a consistent gap. The card has a max-width so
+ * it doesn't stretch uncomfortably wide on large screens, and width:100%
+ * lets it fill smaller screens fully.
+ */
+article {
+    background-color: #141414; /* very dark card background */
+    border-radius: 12px;       /* rounded card corners */
+    margin: 10px auto;         /* vertical spacing; auto centers horizontally */
+    padding: 20px;             /* inner breathing room */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5); /* subtle depth */
+    max-width: 800px;
+    width: 100%;
+    display: flex;             /* poster and text side by side */
+    gap: 20px;
+}
+
+/* The text column inside each card */
+.movie-info {
+    flex: 1; /* take all space remaining after the poster */
+}
+
+/* Movie poster image */
+img {
+    border-radius: 8px;
+    max-width: 300px;
+    width: 300px;
+    height: auto; /* preserve the original aspect ratio */
+}
+
+/*
+ * Movie title heading.
+ *
+ * <h2> is used (not <h1>) because the page already has one <h1> in the
+ * header. Each movie card is a sub-section, so <h2> is the correct level.
+ */
+h2 {
+    font-weight: bold;
+    margin: 0 0 8px 0; /* only bottom margin */
+    color: #f5f5f5;
+    font-size: 1.6em;
+}
+
+/* General paragraph spacing inside cards */
+p {
+    margin: 6px 0;
+    line-height: 1.5;
+}
+
+/*
+ * Genre pill tags — small rounded labels with a thin grey border.
+ * The text color is inherited from the body (#e0e0e0).
+ */
 .genre {
-  padding: 4px 8px;
-  border: solid black 1px;
-  border-radius: 6px;
-  background-color: darkgray;
-  font-weight: bold;
+    background-color: #141414;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 0.85em;
+    border: 1px solid #888888;
+    margin-right: 4px;
+    margin-bottom: 4px;
+}
+
+/* Rating numbers — green to make them visually pop */
+.rating {
+    color: #5aca00;
+    font-weight: bold;
+}
+
+/* Dim label text (e.g. "Released:", "Runtime:") so values stand out */
+.meta-label {
+    color: #aaaaaa;
+    font-size: 0.85em;
+}
+
+/*
+ * MOBILE OVERRIDES (viewport narrower than 768px)
+ *
+ * On a small screen the side-by-side card layout (poster + text) becomes
+ * too cramped. We stack the poster above the text and let the poster
+ * fill the full card width so the title remains readable.
+ */
+@media (max-width: 767px) {
+    article {
+        flex-direction: column;
+        margin: 10px auto;
+        padding: 14px;
+    }
+
+    img {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    h2 {
+        font-size: 1.3em;
+    }
+}
+
+/*
+ * Authentication controls, login/search dialogs and search results.
+ */
+#auth-controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+#userGreeting {
+    margin: 6px 0;
+    font-style: italic;
+}
+
+dialog {
+    border: none;
+    border-radius: 10px;
+    padding: 24px;
+    min-width: 320px;
+    background-color: #1f1f1f;
+    color: #eee;
+}
+
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+dialog h2 {
+    margin-top: 0;
+}
+
+dialog form div {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+dialog input {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background-color: #2b2b2b;
+    color: #eee;
+}
+
+dialog form div:last-child {
+    flex-direction: row;
+    gap: 8px;
+}
+
+.error {
+    color: #ff7676;
+}
+
+.search-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #444;
+}
+
+#searchResults {
+    margin-top: 12px;
+    max-height: 320px;
+    overflow-y: auto;
 }

@@ -1,60 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Movies!</title>
-    <link rel="stylesheet" href="index.css" />
-    <script type="module" src="index.js"></script>
-  </head>
 
-  <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies!</title>
+
+    <!-- Link to the external stylesheet for the overview page -->
+    <link rel="stylesheet" href="index.css" />
+    <!-- Load the JavaScript that handles auth and renders the movie cards -->
+    <script src="index.js" defer></script>
+</head>
+
+<body>
+    <!--
+        HTML5 landmark elements describe the role of each page region.
+        Screen readers and search engines use these to navigate the page.
+    -->
+
     <header>
-      <h1>Movies!</h1>
-      <div id="userGreeting" class="user-greeting"></div>
+        <h1>My Movies!</h1>
+        <!-- Greeting filled in by renderUserGreeting() once logged in -->
+        <p id="userGreeting"></p>
+        <div id="auth-controls">
+            <button id="loginButton" type="button">Login</button>
+            <button id="searchButton" type="button" hidden>Search movies</button>
+            <button id="logoutButton" type="button" hidden>Logout</button>
+        </div>
     </header>
-    <nav>
-      <h2>Genres</h2>
-      <ul id="filter"></ul>
-      <h2>Manage</h2>
-      <ul>
-        <li>
-          <button id="addMoviesBtn">Add movies</button>
-        </li>
-        <li>
-          <button id="authBtn">Login</button>
-        </li>
-      </ul>
-    </nav>
-    <main></main>
+
+    <!--
+        Genre buttons are added dynamically by index.js after fetching
+        /genres from the server (only once the user is logged in).
+    -->
+    <nav id="genre-nav"></nav>
+
+    <!-- Movie cards are appended here by index.js after fetching /movies -->
+    <main id="movies-container"></main>
+
     <footer>
-      <ul>
-        <li>&copy; Movies!</li>
-        <li>&#8213;</li>
-        <li>Written by <a href="mailto:jane.doe@example.com">Jane Doe</a></li>
-        <li>&#8213;</li>
-        <li>
-          Visit us at
-          <a href="https://www.hcw.ac.at/" target="_blank">UAS Campus Vienna</a>
-        </li>
-      </ul>
+        <p>&copy; 2026 mvthos</p>
     </footer>
 
-    <!-- Login Dialog -->
+    <!--
+        Login dialog. The native <dialog> element is shown with
+        showModal() and closed with close(). The form ids must match
+        the selectors used in index.js.
+    -->
     <dialog id="loginDialog">
-      <form id="loginForm">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <button type="submit">Login</button>
-        <button type="button" id="cancelLogin">Cancel</button>
-      </form>
+        <form id="loginForm" method="dialog">
+            <h2>Login</h2>
+            <p id="loginError" class="error" hidden></p>
+            <div>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required />
+            </div>
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required />
+            </div>
+            <div>
+                <button type="submit">Login</button>
+                <button type="button" id="loginCancel">Cancel</button>
+            </div>
+        </form>
     </dialog>
 
-    <!-- Task 2.1: Add a search dialog markup. Make sure the ids of the elements 
-     match the ones used in index.js. Your dialog needs a form and submit and cancel
-     buttons. -->
-    
-  </body>
+    <!--
+        Search dialog (Task 2.1). Contains the query input, a submit
+        button, a cancel button and a container for the results.
+    -->
+    <dialog id="searchDialog">
+        <form id="searchForm" method="dialog">
+            <h2>Search movies</h2>
+            <div>
+                <label for="query">Title</label>
+                <input type="text" id="query" name="query" required />
+            </div>
+            <div>
+                <button type="submit">Search</button>
+                <button type="button" id="searchCancel">Cancel</button>
+            </div>
+        </form>
+        <div id="searchResults"></div>
+    </dialog>
+</body>
+
 </html>

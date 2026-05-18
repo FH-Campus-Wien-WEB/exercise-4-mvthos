@@ -1,54 +1,87 @@
+/*
+ * Movie data model (per-user, file-backed)
+ *
+ * Movies are persisted in movies.json. The top level is keyed by
+ * username; each user maps to an object keyed by imdbID, e.g.
+ *
+ *   { "joe": { "tt0084787": { ...movie... } }, "jane": { ... } }
+ *
+ * Keying by imdbID gives O(1) lookup, while Object.values() converts
+ * a user's collection to an array for the GET /movies endpoint.
+ *
+ * Every mutating function writes the whole structure back to disk so
+ * the data survives a server restart.
+ */
+
 const fs = require('fs');
 const path = require('path');
 
 const moviesFile = path.join(__dirname, 'movies.json');
-let movies = JSON.parse(fs.readFileSync(moviesFile, 'utf8'));
 
-function saveMovies() {
-  fs.writeFileSync(moviesFile, JSON.stringify(movies, null, 2), 'utf8');
-}
-
-function getUserMovies(username) {
-  return movies[username] || {};
-}
-
-function getUserMovie(username, imdbID) {
-  const userMovies = getUserMovies(username);
-  return userMovies[imdbID];
-}
-
-function hasUserMovie(username, imdbID) {
-  return getUserMovie(username, imdbID) !== undefined;
-}
-
-function setUserMovie(username, imdbID, movie) {
-  if (!movies[username]) {
-    movies[username] = {};
+function load() {
+  try {
+    return JSON.parse(fs.readFileSync(moviesFile, 'utf8'));
+  } catch {
+    return {};
   }
-  const exists = imdbID in movies[username];
-  movies[username][imdbID] = movie;
-  saveMovies();
-  return exists;
 }
 
-function deleteUserMovie(username, imdbID) {
-  if (!movies[username] || !(imdbID in movies[username])) {
-    return false;
+function save(data) {
+  fs.writeFileSync(moviesFile, JSON.stringify(data, null, 2) + '\n');
+}
+
+function collectionOf(data, username) {
+  if (!data[username]) {
+    data[username] = {};
   }
-  delete movies[username][imdbID];
-  saveMovies();
-  return true;
+  return data[username];
 }
 
+/* Return all movies of a user as an array (empty array if none). */
+function getMovies(username) {
+  const data = load();
+  return Object.values(data[username] || {});
+}
+
+/* Return a single movie of a user, or undefined if not found. */
+function getMovie(username, imdbID) {
+  const data = load();
+  return (data[username] || {})[imdbID];
+}
+
+/* Add or update a movie for a user. Returns the stored movie. */
+function setMovie(username, movie) {
+  const data = load();
+  collectionOf(data, username)[movie.imdbID] = movie;
+  save(data);
+  return movie;
+}
+
+/* Delete a movie for a user. Returns true if something was removed. */
+function deleteMovie(username, imdbID) {
+  const data = load();
+  const collection = data[username];
+  if (collection && collection[imdbID]) {
+    delete collection[imdbID];
+    save(data);
+    return true;
+  }
+  return false;
+}
+
+/* Distinct genres across a user's movies, sorted alphabetically. */
 function getGenres(username) {
-  return [...new Set(Object.values(getUserMovies(username)).flatMap((movie) => movie.Genres || []))];
+  const genres = new Set();
+  getMovies(username).forEach(movie => {
+    (movie.Genres || []).forEach(genre => genres.add(genre));
+  });
+  return [...genres].sort();
 }
 
 module.exports = {
-  getUserMovies,
-  getUserMovie,
-  hasUserMovie,
-  setUserMovie,
-  deleteUserMovie,
+  getMovies,
+  getMovie,
+  setMovie,
+  deleteMovie,
   getGenres,
 };

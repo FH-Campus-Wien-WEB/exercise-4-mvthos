@@ -1,20 +1,23 @@
 body {
-  font-family: "Trebuchet MS", sans-serif;
-  background-color: brown;
-  color: beige;
+  font-family: "JetBrains Mono", monospace;
 }
 
-main {
-  color: #333;
-}
-
+/*
+ * Buttons are styled to match the genre "pill" look from index.css so that
+ * the navigation buttons and the Edit button feel like they belong to the
+ * same dark theme. Form elements like <button> do NOT inherit the body's
+ * text color by default, so we set it explicitly to match the page text.
+ */
 button {
-    padding: 4px;
-    border-width: 1px;
-    border-radius: 4px;
-    font-size: 105%;
-}
-
-button:hover {
-  background-color: darkgray;
+    margin-top: 10px;
+    cursor: pointer;
+    background-color: #141414;  /* same dark tone as the card — pill defined by its border */
+    color: #e0e0e0;             /* explicit light text — buttons don't inherit body color */
+    padding: 3px 10px;          /* top/bottom 3px, left/right 10px */
+    border-radius: 20px;        /* large radius turns the rectangle into a pill shape */
+    display: inline-block;      /* allows padding to work correctly on a span */
+    font-size: 0.85em;          /* slightly smaller than surrounding text */
+    border: 1px solid #888888;  /* grey outline gives the pill its shape */
+    margin-right: 4px;          /* gap between individual genre pills */
+    margin-bottom: 4px;
 }

@@ -1,5 +1,5 @@
 {
-  "name": "web-26-exercise-4",
+  "name": "web-23-exercise-1",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,11 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.0",
+    "bcryptjs": "^3.0.3",
     "body-parser": "^1.20.2",
-    "dotenv": "^16.0.3",
+    "dotenv": "^17.4.2",
     "express": "^4.18.2",
-    "express-session": "^1.17.3"
+    "express-session": "^1.19.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
